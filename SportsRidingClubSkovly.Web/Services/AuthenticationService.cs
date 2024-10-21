@@ -1,6 +1,7 @@
 ﻿using Blazored.SessionStorage;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using SportsRidingClubSkovly.Web.Services.Interface;
 using SportsRidingClubSkovly.Web.ViewModels;
 using IAuthenticationService = SportsRidingClubSkovly.Web.Services.Interface.IAuthenticationService;
@@ -12,12 +13,14 @@ public class AuthenticationService : IAuthenticationService
     private readonly IAccountProxy _accountProxy;
     private readonly ISessionStorageService _sessionStorageService;
     private readonly NavigationManager _navigationManager;
+    private readonly IJSRuntime _jsRuntime;
 
-    public AuthenticationService(IAccountProxy accountProxy, ISessionStorageService sessionStorageService, NavigationManager navigationManager)
+    public AuthenticationService(IAccountProxy accountProxy, ISessionStorageService sessionStorageService, NavigationManager navigationManager, IJSRuntime jsRuntime)
     {
         _accountProxy = accountProxy;
         _sessionStorageService = sessionStorageService;
         _navigationManager = navigationManager;
+        _jsRuntime = jsRuntime;
     }
     
     async Task IAuthenticationService.LoginAsync(LoginViewModel viewModel)
@@ -26,7 +29,7 @@ public class AuthenticationService : IAuthenticationService
         
         var token = user.Token; 
         
-        await _sessionStorageService.SetItemAsync("jwt_token", token);
+        await SaveJwtToken(token);
         
         _navigationManager.NavigateTo("/"); 
     }
@@ -46,7 +49,7 @@ public class AuthenticationService : IAuthenticationService
         
         var token = user.Token; 
         
-        await _sessionStorageService.SetItemAsync("jwt_token", token);
+        await SaveJwtToken(token);
         
         _navigationManager.NavigateTo("/"); 
     }
@@ -59,6 +62,22 @@ public class AuthenticationService : IAuthenticationService
 
     async Task<string> IAuthenticationService.GetJwtAsync()
     {
-        return await _sessionStorageService.GetItemAsync<string>("jwt_token");
+        return await GetJwtToken();
+    }
+
+    private async Task SaveJwtToken(string token)
+    {
+        await _sessionStorageService.SetItemAsync("jwt_token", token);
+        await _jsRuntime.InvokeVoidAsync("blazorExtensions.SaveJwtToken", token);
+    }
+
+    private async Task<string> GetJwtToken()
+    {
+        var token = await _sessionStorageService.GetItemAsync<string>("jwt_token");
+        if (string.IsNullOrEmpty(token))
+        {
+            token = await _jsRuntime.InvokeAsync<string>("blazorExtensions.GetJwtToken");
+        }
+        return token;
     }
 }

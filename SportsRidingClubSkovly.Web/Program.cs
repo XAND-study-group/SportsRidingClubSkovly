@@ -29,13 +29,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
-            // ValidateIssuer = true,
-            // ValidateAudience = true,
-            // ValidateLifetime = true,
-            // ValidateIssuerSigningKey = true,
-            // ValidIssuer = "your_token_issuer", // Replace with your issuer
-            // ValidAudience = "your_token_audience", // Replace with your audience
-            // IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key")) // Replace with your secret key
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = "your_token_issuer", // Replace with your issuer
+            ValidAudience = "your_token_audience", // Replace with your audience
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key")) // Replace with your secret key
         };
     });
 
